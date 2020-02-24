@@ -1,26 +1,17 @@
-FROM ubuntu:18.04
+FROM nixos/nix
 
-RUN apt-get update && apt-get install -y \
-  build-essential \
-  curl \
-  git \
-  libicu-dev libtinfo-dev libgmp-dev
+# setup nix
+RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable \
+  && nix-channel --update
 
-RUN curl -sSL https://get.haskellstack.org/ | sh
+# install hie
+RUN nix-env -iA nixpkgs.cachix \
+  && cachix use all-hies \
+  && nix-env -iA selection --arg selector 'p: { inherit (p) ghc865; }' -f https://github.com/infinisil/all-hies/tarball/master
 
-# prepare env for hie installation
-ENV PATH $PATH:/root/.local/bin
+# install ghc
+RUN nix-env -i ghc-8.6.5
 
-# install hie to /root/.local/bin
-RUN git clone https://github.com/haskell/haskell-ide-engine --recursive \
-  && cd haskell-ide-engine \
-  && stack install cabal-install \
-  && cabal update \
-  && stack install
-
-# use multi stage build to reduce image size
-FROM ubuntu:18.04
-
-ENV PATH $PATH:/root/.local/bin
-
-COPY --from=0 /root/.local/bin/hie /root/.local/bin/
+# install stack
+RUN nix-env -i stack \
+  && stack update
