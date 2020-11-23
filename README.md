@@ -1,5 +1,7 @@
 # hie-docker
 
+DEPRECATED: Use [hls-docker](https://github.com/k-ishigaki/hls-docker) instead.
+
 ## Usage
 
 <pre>
